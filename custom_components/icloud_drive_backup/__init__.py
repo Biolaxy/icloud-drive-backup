@@ -40,6 +40,7 @@ from .const import (
     PANEL_WEBCOMPONENT,
     STATIC_URL,
 )
+from .notify import async_clear_reauth, async_notify_reauth
 from .websocket import async_register_websocket_commands
 
 _LOGGER = logging.getLogger(__name__)
@@ -128,9 +129,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ICloudDriveConfigEntry) 
     try:
         await hass.async_add_executor_job(client.login)
         if client.requires_2fa:
-            raise ConfigEntryAuthFailed("A new two-factor verification is required")
+            raise ICloudDriveAuthError("A new two-factor verification is required")
         await hass.async_add_executor_job(client.ensure_folder)
     except (ICloudDriveAuthError, ICloudDriveUnsupportedAuthError) as err:
+        await async_notify_reauth(hass, entry)
         raise ConfigEntryAuthFailed(str(err)) from err
     except ICloudDriveUnavailableError as err:
         raise ConfigEntryError(
@@ -142,6 +144,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ICloudDriveConfigEntry) 
         raise ConfigEntryNotReady(str(err)) from err
 
     entry.runtime_data = client
+    async_clear_reauth(hass, entry)
     await _async_register_panel(hass)
     _LOGGER.info("Storing backups in iCloud Drive folder '%s'", client.folder)
 

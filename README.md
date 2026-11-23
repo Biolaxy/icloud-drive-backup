@@ -52,6 +52,16 @@ Der aktuelle Backup-Ordner ist im Baum mit einem grünen Punkt markiert. Vorhand
 
 Alternativ unter **Einstellungen → Geräte & Dienste → iCloud Drive Backup → Konfigurieren**: Status ansehen, Pfad manuell eingeben, Ordner prüfen oder den Explorer **in der Seitenleiste aus- und einblenden**. Ausgeblendet bleibt er über den Link in diesem Dialog erreichbar.
 
+## Benachrichtigung bei abgelaufener Anmeldung
+
+Unter **Konfigurieren → 🔔 Benachrichtigung bei abgelaufener Anmeldung** legst du fest, wie du erfährst, dass du dich neu anmelden musst:
+
+- **Hinweis in Home Assistant** (Glocke in der Seitenleiste, standardmäßig an)
+- **Push-Nachricht** an ausgewählte Geräte, z. B. `notify.mobile_app_dein_iphone` – ein Tipp darauf öffnet direkt die Integration
+- **Testnachricht** zum Ausprobieren
+
+Pro abgelaufener Sitzung kommt eine Nachricht (nach einem Neustart von Home Assistant ggf. erneut). Sobald die Anmeldung wieder klappt, verschwindet der Hinweis automatisch.
+
 ## Wie es funktioniert
 
 - Pro Backup werden zwei Dateien im Zielordner abgelegt:

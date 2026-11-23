@@ -18,6 +18,7 @@ from homeassistant.config_entries import ConfigEntry, ConfigEntryState
 from homeassistant.core import HomeAssistant, callback
 
 from .api import ICloudDriveAuthError, ICloudDriveClient, ICloudDriveError, RemoteBackup
+from .notify import async_notify_reauth
 from .const import CHUNK_SIZE, DATA_BACKUP_AGENT_LISTENERS, DOMAIN
 
 try:  # Home Assistant 2025.5+
@@ -101,6 +102,7 @@ class ICloudDriveBackupAgent(BackupAgent):
             return await self._hass.async_add_executor_job(func, *args)
         except ICloudDriveAuthError as err:
             self._entry.async_start_reauth(self._hass)
+            await async_notify_reauth(self._hass, self._entry)
             raise BackupAgentError(
                 "iCloud login expired, please re-authenticate the integration"
             ) from err

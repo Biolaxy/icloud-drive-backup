@@ -15,6 +15,8 @@ CONF_FOLDER = "folder"
 CONF_VERIFICATION_CODE = "verification_code"
 CONF_CHINA_MAINLAND = "china_mainland"
 CONF_SHOW_PANEL = "show_panel"
+CONF_NOTIFY_PERSISTENT = "notify_persistent"
+CONF_NOTIFY_SERVICES = "notify_services"
 
 DEFAULT_FOLDER = "Home Assistant Backups"
 

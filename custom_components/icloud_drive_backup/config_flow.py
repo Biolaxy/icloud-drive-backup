@@ -18,12 +18,16 @@ from homeassistant.config_entries import (
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import callback
 from homeassistant.helpers.selector import (
+    SelectSelector,
+    SelectSelectorConfig,
+    SelectSelectorMode,
     TextSelector,
     TextSelectorConfig,
     TextSelectorType,
 )
 
 from . import create_client, entry_folder, normalize_folder
+from .notify import async_send_test, available_notify_services
 from .api import (
     ICloudDriveAuthError,
     ICloudDriveClient,
@@ -37,6 +41,8 @@ from .api import (
 from .const import (
     CONF_CHINA_MAINLAND,
     CONF_FOLDER,
+    CONF_NOTIFY_PERSISTENT,
+    CONF_NOTIFY_SERVICES,
     CONF_SHOW_PANEL,
     CONF_VERIFICATION_CODE,
     DEFAULT_FOLDER,
@@ -222,6 +228,9 @@ _LABELS = {
         "read_ok": "✅ Ordner gefunden und lesbar ({count} Backup(s))",
         "write_ok": "✅ Schreibtest erfolgreich (Testdatei angelegt und gelöscht)",
         "write_fail": "❌ Schreibtest fehlgeschlagen",
+        "test_sent": "✅ Testnachricht gesendet – prüfe die Benachrichtigungen und dein Handy. Zum Übernehmen „Absenden“ ohne Häkchen bei Testnachricht.",
+        "no_services": "Keine Push-Dienste gefunden. Installiere die Home-Assistant-App auf deinem Handy, dann erscheint sie hier (notify.mobile_app_…).",
+        "pick_services": "Wähle die Geräte, die eine Push-Nachricht bekommen sollen (z. B. notify.mobile_app_dein_iphone).",
     },
     "en": {
         "ok": "✅ Reachable – {count} backup(s) in the folder",
@@ -230,6 +239,9 @@ _LABELS = {
         "read_ok": "✅ Folder found and readable ({count} backup(s))",
         "write_ok": "✅ Write test passed (test file created and deleted)",
         "write_fail": "❌ Write test failed",
+        "test_sent": "✅ Test message sent – check your notifications and your phone. To save, submit without ticking the test box.",
+        "no_services": "No push services found. Install the Home Assistant app on your phone and it will show up here (notify.mobile_app_…).",
+        "pick_services": "Pick the devices that should get a push message (e.g. notify.mobile_app_your_iphone).",
     },
 }
 
@@ -303,7 +315,7 @@ class ICloudDriveOptionsFlow(OptionsFlow):
         check = await self.hass.async_add_executor_job(client.check, False)
         return self.async_show_menu(
             step_id="init",
-            menu_options=["manual", "check", "sidebar"],
+            menu_options=["manual", "check", "notify", "sidebar"],
             description_placeholders={
                 "folder": _display_path(split_path(client.folder)),
                 "status": self._status_text(check),
@@ -399,4 +411,60 @@ class ICloudDriveOptionsFlow(OptionsFlow):
                     ): bool
                 }
             ),
+        )
+
+    # --------------------------------------------------------------- notify
+
+    async def async_step_notify(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Choose how to be told when the iCloud sign-in has to be renewed."""
+        services = available_notify_services(self.hass)
+        current = {
+            CONF_NOTIFY_PERSISTENT: self.config_entry.options.get(
+                CONF_NOTIFY_PERSISTENT, True
+            ),
+            CONF_NOTIFY_SERVICES: [
+                s
+                for s in self.config_entry.options.get(CONF_NOTIFY_SERVICES, [])
+                if s in services
+            ],
+        }
+        status = self._t("pick_services") if services else self._t("no_services")
+
+        if user_input is not None:
+            chosen = {
+                CONF_NOTIFY_PERSISTENT: user_input.get(CONF_NOTIFY_PERSISTENT, True),
+                CONF_NOTIFY_SERVICES: user_input.get(CONF_NOTIFY_SERVICES, []),
+            }
+            if not user_input.get("send_test"):
+                return self.async_create_entry(
+                    data={**self.config_entry.options, **chosen}
+                )
+            await async_send_test(self.hass, self.config_entry, chosen)
+            current = chosen
+            status = self._t("test_sent")
+
+        schema: dict[Any, Any] = {
+            vol.Required(
+                CONF_NOTIFY_PERSISTENT, default=current[CONF_NOTIFY_PERSISTENT]
+            ): bool,
+        }
+        if services:
+            schema[
+                vol.Optional(
+                    CONF_NOTIFY_SERVICES, default=current[CONF_NOTIFY_SERVICES]
+                )
+            ] = SelectSelector(
+                SelectSelectorConfig(
+                    options=[{"value": s, "label": f"notify.{s}"} for s in services],
+                    multiple=True,
+                    mode=SelectSelectorMode.DROPDOWN,
+                )
+            )
+        schema[vol.Optional("send_test", default=False)] = bool
+        return self.async_show_form(
+            step_id="notify",
+            data_schema=vol.Schema(schema),
+            description_placeholders={"status": status},
         )

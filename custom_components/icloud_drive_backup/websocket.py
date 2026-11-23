@@ -21,6 +21,7 @@ from .api import (
     split_path,
 )
 from .const import CONF_FOLDER, DOMAIN
+from .notify import async_notify_reauth
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -75,6 +76,7 @@ async def _run(
         entry = hass.config_entries.async_get_entry(msg["entry_id"])
         if entry is not None:
             entry.async_start_reauth(hass)
+            await async_notify_reauth(hass, entry)
         connection.send_error(
             msg["id"], "auth", "The iCloud session has expired. Please re-authenticate."
         )

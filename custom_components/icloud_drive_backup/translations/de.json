@@ -51,6 +51,7 @@
         "menu_options": {
           "manual": "⌨️ Ordnerpfad manuell eingeben",
           "check": "🩺 Ordner prüfen (Lese- und Schreibtest)",
+          "notify": "🔔 Benachrichtigung bei abgelaufener Anmeldung",
           "sidebar": "🧭 In der Seitenleiste ein- oder ausblenden"
         }
       },
@@ -70,6 +71,15 @@
         "description": "Lege fest, ob **iCloud Backup** in der Seitenleiste erscheint. Ausgeblendet bleibt der Explorer über den Link in diesem Dialog erreichbar.",
         "data": {
           "show_panel": "Ordner-Explorer in der Seitenleiste anzeigen"
+        }
+      },
+      "notify": {
+        "title": "Benachrichtigung bei abgelaufener Anmeldung",
+        "description": "Etwa alle 2 Monate beendet Apple die iCloud-Sitzung und du musst dich neu anmelden. Solange du das nicht erledigst, werden keine Backups in iCloud gespeichert. Lege fest, wie du davon erfährst.\n\n{status}",
+        "data": {
+          "notify_persistent": "Hinweis in Home Assistant anzeigen",
+          "notify_services": "Push-Nachricht an diese Geräte",
+          "send_test": "Jetzt eine Testnachricht senden"
         }
       }
     },

@@ -51,6 +51,7 @@
         "menu_options": {
           "manual": "⌨️ Enter folder path manually",
           "check": "🩺 Check folder (read and write test)",
+          "notify": "🔔 Notification when sign-in expires",
           "sidebar": "🧭 Show or hide in sidebar"
         }
       },
@@ -70,6 +71,15 @@
         "description": "Choose whether **iCloud Backup** appears in the sidebar. When hidden, the explorer stays available via the link in this dialog.",
         "data": {
           "show_panel": "Show the folder explorer in the sidebar"
+        }
+      },
+      "notify": {
+        "title": "Notification when sign-in expires",
+        "description": "About every 2 months Apple ends the iCloud session and you have to sign in again. Until then no backups are stored in iCloud. Choose how you want to be told.\n\n{status}",
+        "data": {
+          "notify_persistent": "Show a notification in Home Assistant",
+          "notify_services": "Push message to these devices",
+          "send_test": "Send a test message now"
         }
       }
     },
