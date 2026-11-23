@@ -1,0 +1,45 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect iCloud Drive",
+        "description": "Sign in with your Apple ID. Backups are stored in the given folder of your iCloud Drive. Requirements: 'Access iCloud Data on the Web' must be enabled and Advanced Data Protection must be turned off.",
+        "data": {
+          "username": "Apple ID (email)",
+          "password": "Password",
+          "folder": "Folder in iCloud Drive",
+          "china_mainland": "Account is registered in mainland China"
+        }
+      },
+      "verification_code": {
+        "title": "Two-factor authentication",
+        "description": "Enter the 6-digit verification code that is shown on one of your trusted Apple devices for {username}.",
+        "data": {
+          "verification_code": "Verification code"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Re-authenticate iCloud",
+        "description": "The iCloud session for {username} has expired. Enter your password to sign in again; you may be asked for a new verification code.",
+        "data": {
+          "password": "Password"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Invalid Apple ID or password.",
+      "invalid_code": "The verification code is invalid. Please try again.",
+      "unsupported_auth": "This account uses a sign-in method that is not supported (two-step verification or security keys).",
+      "cannot_connect": "Could not connect to iCloud.",
+      "unknown": "Unexpected error, see the log for details."
+    },
+    "abort": {
+      "already_configured": "This Apple ID is already configured.",
+      "reauth_successful": "Re-authentication was successful.",
+      "security_key_unsupported": "This account requires a hardware security key for sign-in, which is not supported.",
+      "drive_unavailable": "iCloud Drive is not reachable. Enable 'Access iCloud Data on the Web' and turn off Advanced Data Protection in your Apple ID settings, then try again.",
+      "invalid_auth": "Sign-in to iCloud failed.",
+      "cannot_connect": "Could not connect to iCloud Drive."
+    }
+  }
+}

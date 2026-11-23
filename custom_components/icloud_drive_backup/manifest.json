@@ -1,0 +1,22 @@
+{
+  "domain": "icloud_drive_backup",
+  "name": "iCloud Drive Backup",
+  "codeowners": [
+    "@Biolaxy"
+  ],
+  "config_flow": true,
+  "dependencies": [
+    "backup"
+  ],
+  "documentation": "https://github.com/Biolaxy/icloud-drive-backup",
+  "integration_type": "service",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/Biolaxy/icloud-drive-backup/issues",
+  "loggers": [
+    "pyicloud"
+  ],
+  "requirements": [
+    "pyicloud>=2.0.0"
+  ],
+  "version": "1.0.0"
+}

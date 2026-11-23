@@ -1,0 +1,45 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "iCloud Drive verbinden",
+        "description": "Melde dich mit deiner Apple-ID an. Die Backups werden im angegebenen Ordner deines iCloud Drive gespeichert. Voraussetzungen: „Auf iCloud-Daten im Web zugreifen“ muss aktiviert und der erweiterte Datenschutz (Advanced Data Protection) deaktiviert sein.",
+        "data": {
+          "username": "Apple-ID (E-Mail)",
+          "password": "Passwort",
+          "folder": "Ordner im iCloud Drive",
+          "china_mainland": "Account ist in Festlandchina registriert"
+        }
+      },
+      "verification_code": {
+        "title": "Zwei-Faktor-Authentifizierung",
+        "description": "Gib den 6-stelligen Bestätigungscode ein, der auf einem deiner vertrauenswürdigen Apple-Geräte für {username} angezeigt wird.",
+        "data": {
+          "verification_code": "Bestätigungscode"
+        }
+      },
+      "reauth_confirm": {
+        "title": "iCloud erneut anmelden",
+        "description": "Die iCloud-Sitzung für {username} ist abgelaufen. Gib dein Passwort ein, um dich erneut anzumelden; eventuell wird ein neuer Bestätigungscode abgefragt.",
+        "data": {
+          "password": "Passwort"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Apple-ID oder Passwort ist falsch.",
+      "invalid_code": "Der Bestätigungscode ist ungültig. Bitte erneut versuchen.",
+      "unsupported_auth": "Dieser Account nutzt eine nicht unterstützte Anmeldemethode (zweistufige Bestätigung oder Sicherheitsschlüssel).",
+      "cannot_connect": "Verbindung zu iCloud fehlgeschlagen.",
+      "unknown": "Unerwarteter Fehler, Details im Log."
+    },
+    "abort": {
+      "already_configured": "Diese Apple-ID ist bereits eingerichtet.",
+      "reauth_successful": "Erneute Anmeldung erfolgreich.",
+      "security_key_unsupported": "Dieser Account verlangt einen Hardware-Sicherheitsschlüssel zur Anmeldung – das wird nicht unterstützt.",
+      "drive_unavailable": "iCloud Drive ist nicht erreichbar. Aktiviere „Auf iCloud-Daten im Web zugreifen“ und deaktiviere den erweiterten Datenschutz in deinen Apple-ID-Einstellungen, dann erneut versuchen.",
+      "invalid_auth": "Anmeldung bei iCloud fehlgeschlagen.",
+      "cannot_connect": "Verbindung zu iCloud Drive fehlgeschlagen."
+    }
+  }
+}
