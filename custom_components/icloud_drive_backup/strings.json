@@ -7,7 +7,7 @@
         "data": {
           "username": "Apple ID (email)",
           "password": "Password",
-          "folder": "Folder in iCloud Drive",
+          "folder": "Folder in iCloud Drive (use / for subfolders)",
           "china_mainland": "Account is registered in mainland China"
         }
       },
@@ -39,7 +39,8 @@
       "security_key_unsupported": "This account requires a hardware security key for sign-in, which is not supported.",
       "drive_unavailable": "iCloud Drive is not reachable. Enable 'Access iCloud Data on the Web' and turn off Advanced Data Protection in your Apple ID settings, then try again.",
       "invalid_auth": "Sign-in to iCloud failed.",
-      "cannot_connect": "Could not connect to iCloud Drive."
+      "cannot_connect": "Could not connect to iCloud Drive.",
+      "folder_failed": "Could not find or create the folder '{folder}' in iCloud Drive. Check the Home Assistant log for details."
     }
   }
 }

@@ -7,7 +7,7 @@
         "data": {
           "username": "Apple-ID (E-Mail)",
           "password": "Passwort",
-          "folder": "Ordner im iCloud Drive",
+          "folder": "Ordner im iCloud Drive (Unterordner mit / trennen)",
           "china_mainland": "Account ist in Festlandchina registriert"
         }
       },
@@ -39,7 +39,8 @@
       "security_key_unsupported": "Dieser Account verlangt einen Hardware-Sicherheitsschlüssel zur Anmeldung – das wird nicht unterstützt.",
       "drive_unavailable": "iCloud Drive ist nicht erreichbar. Aktiviere „Auf iCloud-Daten im Web zugreifen“ und deaktiviere den erweiterten Datenschutz in deinen Apple-ID-Einstellungen, dann erneut versuchen.",
       "invalid_auth": "Anmeldung bei iCloud fehlgeschlagen.",
-      "cannot_connect": "Verbindung zu iCloud Drive fehlgeschlagen."
+      "cannot_connect": "Verbindung zu iCloud Drive fehlgeschlagen.",
+      "folder_failed": "Der Ordner „{folder}“ konnte im iCloud Drive nicht gefunden oder angelegt werden. Details stehen im Home-Assistant-Log."
     }
   }
 }

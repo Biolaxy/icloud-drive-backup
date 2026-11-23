@@ -173,7 +173,16 @@ class ICloudDriveBackupConfigFlow(ConfigFlow, domain=DOMAIN):
             return self.async_abort(reason="drive_unavailable")
         except ICloudDriveAuthError:
             return self.async_abort(reason="invalid_auth")
+        except ICloudDriveConnectionError as err:
+            _LOGGER.error("iCloud Drive check failed: %s", err)
+            return self.async_abort(reason="cannot_connect")
         except ICloudDriveError as err:
+            _LOGGER.error("iCloud Drive folder check failed: %s", err)
+            return self.async_abort(
+                reason="folder_failed",
+                description_placeholders={"folder": self._data[CONF_FOLDER]},
+            )
+        except Exception as err:  # noqa: BLE001
             _LOGGER.error("iCloud Drive check failed: %s", err)
             return self.async_abort(reason="cannot_connect")
 

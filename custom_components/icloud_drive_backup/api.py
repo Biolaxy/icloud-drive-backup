@@ -13,10 +13,12 @@ import json
 import logging
 import os
 import threading
+import time
 from typing import IO, Any
 import uuid
 
 from pyicloud import PyiCloudService
+from pyicloud.services.drive import DriveNode
 import pyicloud.exceptions as pyicloud_exceptions
 from pyicloud.exceptions import (
     PyiCloud2SARequiredException,
@@ -252,23 +254,55 @@ class ICloudDriveClient:
         except OSError as err:
             raise ICloudDriveConnectionError(str(err)) from err
 
+    @staticmethod
+    def _find_subfolder(parent: Any, name: str) -> Any:
+        """Return the child folder called ``name`` (exact match preferred)."""
+        folders = [c for c in parent.get_children(force=True) if c.type == "folder"]
+        for child in folders:
+            if _drive_name(child) == name:
+                return child
+        # iCloud Drive treats names case-insensitively.
+        for child in folders:
+            if _drive_name(child).casefold() == name.casefold():
+                return child
+        return None
+
+    def _get_or_create_subfolder(self, parent: Any, name: str) -> Any:
+        child = self._find_subfolder(parent, name)
+        if child is not None:
+            return child
+        _LOGGER.info("Creating iCloud Drive folder '%s'", name)
+        response = parent.mkdir(name)
+        # The new folder can take a moment to show up in listings.
+        for attempt in range(5):
+            if attempt:
+                time.sleep(attempt)
+            child = self._find_subfolder(parent, name)
+            if child is not None:
+                return child
+        # Fall back to the folder data returned by the create call.
+        try:
+            data = response["folders"][0]
+            if data.get("drivewsid") and data.get("docwsid"):
+                return DriveNode(parent.connection, data)
+        except (KeyError, IndexError, TypeError):
+            pass
+        _LOGGER.error("Unexpected createFolders response: %s", response)
+        raise ICloudDriveError(f"Could not create folder '{name}'")
+
     def _get_folder(self, refresh: bool = False) -> Any:
-        """Return the backup folder node, creating it if needed."""
+        """Return the backup folder node, creating it (and parents) if needed.
+
+        The folder may be a path like ``Backup/HomeAssistant``.
+        """
         if self._folder_node is not None and not refresh:
             return self._folder_node
-        drive = self._drive()
-        root = drive.root
-        for child in root.get_children(force=True):
-            if child.type == "folder" and _drive_name(child) == self._folder_name:
-                self._folder_node = child
-                return child
-        _LOGGER.info("Creating iCloud Drive folder '%s'", self._folder_name)
-        root.mkdir(self._folder_name)
-        for child in root.get_children(force=True):
-            if child.type == "folder" and _drive_name(child) == self._folder_name:
-                self._folder_node = child
-                return child
-        raise ICloudDriveError(f"Could not create folder '{self._folder_name}'")
+        node = self._drive().root
+        for segment in self._folder_name.split("/"):
+            if segment.strip():
+                node = self._get_or_create_subfolder(node, segment.strip())
+        self._folder_node = node
+        return node
 
     def ensure_folder(self) -> None:
         """Verify that iCloud Drive works and the backup folder exists."""
