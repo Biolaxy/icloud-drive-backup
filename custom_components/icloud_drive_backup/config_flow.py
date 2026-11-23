@@ -8,15 +8,22 @@ from typing import Any
 
 import voluptuous as vol
 
-from homeassistant.config_entries import SOURCE_REAUTH, ConfigFlow, ConfigFlowResult
+from homeassistant.config_entries import (
+    SOURCE_REAUTH,
+    ConfigEntry,
+    ConfigFlow,
+    ConfigFlowResult,
+    OptionsFlow,
+)
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
+from homeassistant.core import callback
 from homeassistant.helpers.selector import (
     TextSelector,
     TextSelectorConfig,
     TextSelectorType,
 )
 
-from . import create_client
+from . import create_client, entry_folder, normalize_folder
 from .api import (
     ICloudDriveAuthError,
     ICloudDriveClient,
@@ -43,6 +50,12 @@ class ICloudDriveBackupConfigFlow(ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
 
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry: ConfigEntry) -> OptionsFlow:
+        """Return the options flow (change the backup folder)."""
+        return ICloudDriveOptionsFlow()
+
     def __init__(self) -> None:
         """Initialize the flow."""
         self._data: dict[str, Any] = {}
@@ -57,9 +70,7 @@ class ICloudDriveBackupConfigFlow(ConfigFlow, domain=DOMAIN):
         errors: dict[str, str] = {}
         if user_input is not None:
             user_input[CONF_USERNAME] = user_input[CONF_USERNAME].strip()
-            user_input[CONF_FOLDER] = (
-                user_input.get(CONF_FOLDER, "").strip().strip("/") or DEFAULT_FOLDER
-            )
+            user_input[CONF_FOLDER] = normalize_folder(user_input.get(CONF_FOLDER))
             await self.async_set_unique_id(user_input[CONF_USERNAME].lower())
             self._abort_if_unique_id_configured()
             self._data = user_input
@@ -193,4 +204,66 @@ class ICloudDriveBackupConfigFlow(ConfigFlow, domain=DOMAIN):
             )
         return self.async_create_entry(
             title=f"iCloud Drive ({self._data[CONF_USERNAME]})", data=self._data
+        )
+
+
+class ICloudDriveOptionsFlow(OptionsFlow):
+    """Change the iCloud Drive backup folder of a configured entry."""
+
+    async def _async_describe(self, client: ICloudDriveClient) -> str:
+        """Return how many backups the folder holds, or '?' if unknown."""
+        try:
+            backups = await self.hass.async_add_executor_job(client.list_backups)
+        except ICloudDriveError as err:
+            _LOGGER.debug("Could not list backups in %s: %s", client.folder, err)
+            return "?"
+        return str(len(backups))
+
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Show the current folder and let the user pick another one."""
+        errors: dict[str, str] = {}
+        current = entry_folder(self.config_entry)
+        client: ICloudDriveClient | None = getattr(
+            self.config_entry, "runtime_data", None
+        )
+
+        if user_input is not None:
+            folder = normalize_folder(user_input.get(CONF_FOLDER))
+            if folder == current:
+                return self.async_create_entry(data={CONF_FOLDER: folder})
+            if client is None:
+                errors["base"] = "not_loaded"
+            else:
+                try:
+                    await self.hass.async_add_executor_job(
+                        client.for_folder(folder).ensure_folder
+                    )
+                except ICloudDriveAuthError:
+                    errors["base"] = "invalid_auth"
+                except ICloudDriveUnavailableError:
+                    errors["base"] = "drive_unavailable"
+                except ICloudDriveConnectionError:
+                    errors["base"] = "cannot_connect"
+                except ICloudDriveError as err:
+                    _LOGGER.error("Folder '%s' could not be used: %s", folder, err)
+                    errors["base"] = "folder_failed"
+                else:
+                    _LOGGER.info("Backup folder changed from '%s' to '%s'", current, folder)
+                    return self.async_create_entry(data={CONF_FOLDER: folder})
+
+        count = await self._async_describe(client) if client is not None else "?"
+        return self.async_show_form(
+            step_id="init",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(
+                        CONF_FOLDER,
+                        default=(user_input or {}).get(CONF_FOLDER, current),
+                    ): str
+                }
+            ),
+            description_placeholders={"folder": current, "count": count},
+            errors=errors,
         )

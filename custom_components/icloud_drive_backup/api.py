@@ -163,6 +163,23 @@ class ICloudDriveClient:
         # drivewsid -> (etag, parsed metadata)
         self._metadata_cache: dict[str, tuple[str, dict[str, Any]]] = {}
 
+    @property
+    def folder(self) -> str:
+        """Return the configured backup folder path."""
+        return self._folder_name
+
+    def for_folder(self, folder: str) -> ICloudDriveClient:
+        """Return a client for another folder that reuses this login session."""
+        client = ICloudDriveClient(
+            self._username,
+            self._password,
+            folder,
+            self._cookie_directory,
+            self._china_mainland,
+        )
+        client._api = self._api  # noqa: SLF001
+        return client
+
     # ------------------------------------------------------------------ auth
 
     def login(self) -> None:

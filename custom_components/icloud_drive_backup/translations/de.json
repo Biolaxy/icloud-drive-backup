@@ -42,5 +42,23 @@
       "cannot_connect": "Verbindung zu iCloud Drive fehlgeschlagen.",
       "folder_failed": "Der Ordner „{folder}“ konnte im iCloud Drive nicht gefunden oder angelegt werden. Details stehen im Home-Assistant-Log."
     }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Backup-Ordner",
+        "description": "Backups werden aktuell im iCloud-Drive-Ordner **{folder}** gespeichert (dort gefunden: {count} Backups).\n\nGib einen anderen Pfad ein, um zu wechseln. Unterordner mit / trennen, z. B. `Backup/HomeAssistant`. Fehlende Ordner werden angelegt. Vorhandene Backups werden nicht verschoben.",
+        "data": {
+          "folder": "Ordner im iCloud Drive"
+        }
+      }
+    },
+    "error": {
+      "folder_failed": "Der Ordner konnte im iCloud Drive nicht gefunden oder angelegt werden. Details stehen im Log.",
+      "not_loaded": "Die Integration ist nicht geladen. Bitte zuerst die Verbindung reparieren, dann den Ordner ändern.",
+      "drive_unavailable": "iCloud Drive ist über die Web-API nicht erreichbar.",
+      "invalid_auth": "Die iCloud-Sitzung ist abgelaufen. Bitte die Integration erneut authentifizieren.",
+      "cannot_connect": "Verbindung zu iCloud Drive fehlgeschlagen."
+    }
   }
 }
