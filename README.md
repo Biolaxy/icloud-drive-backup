@@ -37,13 +37,16 @@ Nach der Einrichtung erscheint „iCloud Drive (…)“ unter **Einstellungen �
 3. Den 6-stelligen Code eingeben, der auf deinem iPhone/Mac erscheint.
 4. **Einstellungen → System → Backups → Backup-Einstellungen** öffnen und iCloud Drive als Speicherort aktivieren.
 
-## Backup-Ordner ändern
+## Backup-Ordner prüfen und ändern
 
 **Einstellungen → Geräte & Dienste → iCloud Drive Backup → Konfigurieren** (Zahnrad).
-Der Dialog zeigt den aktuell verwendeten Ordner und wie viele Backups dort liegen.
-Gib einen neuen Pfad ein (Unterordner mit `/` trennen, z. B. `Backup/HomeAssistant`) –
-fehlende Ordner werden angelegt und die Integration lädt sofort mit dem neuen Ordner neu.
-Bereits vorhandene Backups werden nicht verschoben.
+Oben siehst du den aktuell verwendeten Ordner und einen Live-Status (erreichbar? wie viele Backups?). Darunter:
+
+- **📂 Ordner durchsuchen** – kleiner Explorer: Ordner öffnen, eine Ebene nach oben, neuen Unterordner anlegen, „Diesen Ordner verwenden“.
+- **⌨️ Ordnerpfad manuell eingeben** – z. B. `Backup/HomeAssistant` (Unterordner mit `/` trennen).
+- **🩺 Ordner prüfen** – Lese- und Schreibtest: Ordner wird gelesen, eine kleine Testdatei angelegt und wieder gelöscht (landet in „Zuletzt gelöscht“).
+
+Nach einem Ordnerwechsel lädt die Integration sofort mit dem neuen Ordner neu. Vorhandene Backups werden nicht verschoben.
 
 ## Wie es funktioniert
 

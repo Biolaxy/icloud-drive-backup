@@ -74,6 +74,26 @@ class ICloudDriveConnectionError(ICloudDriveError):
     """iCloud could not be reached."""
 
 
+class ICloudDriveFolderNotFoundError(ICloudDriveError):
+    """A folder of the requested path does not exist."""
+
+
+@dataclass
+class FolderCheck:
+    """Result of checking the backup folder."""
+
+    path: str
+    exists: bool = False
+    backups: int | None = None
+    write_ok: bool | None = None
+    error: str | None = None
+
+
+def split_path(path: str) -> list[str]:
+    """Split 'Backup/HomeAssistant' into its non-empty segments."""
+    return [part.strip() for part in (path or "").split("/") if part.strip()]
+
+
 @dataclass
 class RemoteBackup:
     """A backup stored in iCloud Drive."""
@@ -314,12 +334,68 @@ class ICloudDriveClient:
         """
         if self._folder_node is not None and not refresh:
             return self._folder_node
+        self._folder_node = self._resolve(self._folder_name, create=True)
+        return self._folder_node
+
+    def _resolve(self, path: str, create: bool) -> Any:
+        """Walk a folder path from the iCloud Drive root."""
         node = self._drive().root
-        for segment in self._folder_name.split("/"):
-            if segment.strip():
-                node = self._get_or_create_subfolder(node, segment.strip())
-        self._folder_node = node
+        for segment in split_path(path):
+            if create:
+                node = self._get_or_create_subfolder(node, segment)
+                continue
+            child = self._find_subfolder(node, segment)
+            if child is None:
+                raise ICloudDriveFolderNotFoundError(path)
+            node = child
         return node
+
+    def list_subfolders(self, path: str) -> list[str]:
+        """Return the names of the folders inside ``path`` ('' = root)."""
+        with self._lock:
+            node = self._call(self._resolve, path, False)
+            children = self._call(node.get_children, True)
+        names = [_drive_name(c) for c in children if c.type == "folder"]
+        return sorted(names, key=str.casefold)
+
+    def create_subfolder(self, path: str, name: str) -> None:
+        """Create folder ``name`` inside the existing folder ``path``."""
+        with self._lock:
+            parent = self._call(self._resolve, path, False)
+            self._call(self._get_or_create_subfolder, parent, name.strip())
+
+    def check(self, write_test: bool = False) -> FolderCheck:
+        """Check that the backup folder exists, is readable and (optionally) writable.
+
+        Never creates the folder. The write test uploads a tiny file and
+        deletes it again (it then sits in 'Recently Deleted').
+        """
+        result = FolderCheck(path=self._folder_name)
+        try:
+            with self._lock:
+                node = self._call(self._resolve, self._folder_name, False)
+                self._folder_node = node
+            result.exists = True
+            result.backups = len(self.list_backups())
+            if write_test:
+                result.write_ok = False
+                name = f"ha-write-test-{uuid.uuid4().hex[:8]}.txt"
+                payload = b"Home Assistant iCloud Drive Backup write test\n"
+                self._call(self._upload, io.BytesIO(payload), name, len(payload))
+                with self._lock:
+                    children = self._call(node.get_children, True)
+                    test_file = next(
+                        (c for c in children if _drive_name(c) == name), None
+                    )
+                    if test_file is None:
+                        raise ICloudDriveError("Test file not found after upload")
+                    self._call(test_file.delete)
+                result.write_ok = True
+        except ICloudDriveFolderNotFoundError:
+            result.exists = False
+        except ICloudDriveError as err:
+            result.error = str(err) or type(err).__name__
+        return result
 
     def ensure_folder(self) -> None:
         """Verify that iCloud Drive works and the backup folder exists."""

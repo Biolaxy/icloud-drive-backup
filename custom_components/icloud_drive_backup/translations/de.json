@@ -46,19 +46,51 @@
   "options": {
     "step": {
       "init": {
-        "title": "Backup-Ordner",
-        "description": "Backups werden aktuell im iCloud-Drive-Ordner **{folder}** gespeichert (dort gefunden: {count} Backups).\n\nGib einen anderen Pfad ein, um zu wechseln. Unterordner mit / trennen, z. B. `Backup/HomeAssistant`. Fehlende Ordner werden angelegt. Vorhandene Backups werden nicht verschoben.",
+        "title": "iCloud Drive Backup",
+        "description": "**Backup-Ordner:** {folder}\n\n**Status:** {status}",
+        "menu_options": {
+          "browse": "📂 Ordner durchsuchen",
+          "manual": "⌨️ Ordnerpfad manuell eingeben",
+          "check": "🩺 Ordner prüfen (Lese- und Schreibtest)"
+        }
+      },
+      "browse": {
+        "title": "Backup-Ordner wählen",
+        "description": "**Du bist in:** {path} ({subfolders})\n\nAktuell verwendet: {current}\n\nÖffne einen Ordner, gehe eine Ebene nach oben, lege einen Unterordner an oder wähle den Ordner, in dem du gerade bist.",
+        "data": {
+          "action": "Auswahl"
+        }
+      },
+      "new_folder": {
+        "title": "Neuer Unterordner",
+        "description": "Der neue Ordner wird in **{path}** angelegt.",
+        "data": {
+          "name": "Ordnername"
+        }
+      },
+      "manual": {
+        "title": "Ordnerpfad eingeben",
+        "description": "Aktuell verwendet: {current}\n\nUnterordner mit / trennen, z. B. `Backup/HomeAssistant`. Fehlende Ordner werden angelegt. Vorhandene Backups werden nicht verschoben.",
         "data": {
           "folder": "Ordner im iCloud Drive"
         }
+      },
+      "check": {
+        "title": "Ordnerprüfung",
+        "description": "**Ordner:** {folder}\n\n{result}\n\nAbsenden, um zurückzugehen."
       }
     },
     "error": {
       "folder_failed": "Der Ordner konnte im iCloud Drive nicht gefunden oder angelegt werden. Details stehen im Log.",
-      "not_loaded": "Die Integration ist nicht geladen. Bitte zuerst die Verbindung reparieren, dann den Ordner ändern.",
       "drive_unavailable": "iCloud Drive ist über die Web-API nicht erreichbar.",
       "invalid_auth": "Die iCloud-Sitzung ist abgelaufen. Bitte die Integration erneut authentifizieren.",
-      "cannot_connect": "Verbindung zu iCloud Drive fehlgeschlagen."
+      "cannot_connect": "Verbindung zu iCloud Drive fehlgeschlagen.",
+      "root_not_allowed": "Bitte einen Ordner wählen oder anlegen – Backups können nicht direkt in der obersten Ebene des iCloud Drive liegen.",
+      "invalid_name": "Ungültiger Ordnername (darf nicht leer sein und kein / enthalten).",
+      "unknown": "Unerwarteter Fehler, Details im Log."
+    },
+    "abort": {
+      "not_loaded": "Die Integration ist nicht geladen. Bitte zuerst die Verbindung reparieren (erneut authentifizieren), dann erneut versuchen."
     }
   }
 }

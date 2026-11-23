@@ -46,19 +46,51 @@
   "options": {
     "step": {
       "init": {
-        "title": "Backup folder",
-        "description": "Backups are currently stored in the iCloud Drive folder **{folder}** ({count} backups found there).\n\nEnter a different path to switch. Use / for subfolders, e.g. `Backup/HomeAssistant`. Missing folders are created. Existing backups are not moved.",
+        "title": "iCloud Drive Backup",
+        "description": "**Backup folder:** {folder}\n\n**Status:** {status}",
+        "menu_options": {
+          "browse": "📂 Browse for a folder",
+          "manual": "⌨️ Enter folder path manually",
+          "check": "🩺 Check folder (read and write test)"
+        }
+      },
+      "browse": {
+        "title": "Choose backup folder",
+        "description": "**You are in:** {path} ({subfolders})\n\nCurrently used: {current}\n\nOpen a folder, go up one level, create a new subfolder, or pick the folder you are in.",
+        "data": {
+          "action": "Selection"
+        }
+      },
+      "new_folder": {
+        "title": "New subfolder",
+        "description": "The new folder is created in **{path}**.",
+        "data": {
+          "name": "Folder name"
+        }
+      },
+      "manual": {
+        "title": "Enter folder path",
+        "description": "Currently used: {current}\n\nUse / for subfolders, e.g. `Backup/HomeAssistant`. Missing folders are created. Existing backups are not moved.",
         "data": {
           "folder": "Folder in iCloud Drive"
         }
+      },
+      "check": {
+        "title": "Folder check",
+        "description": "**Folder:** {folder}\n\n{result}\n\nSubmit to go back."
       }
     },
     "error": {
       "folder_failed": "The folder could not be found or created in iCloud Drive. Check the log for details.",
-      "not_loaded": "The integration is not loaded. Fix the connection first, then change the folder.",
       "drive_unavailable": "iCloud Drive is not reachable via the web API.",
       "invalid_auth": "The iCloud session has expired. Please re-authenticate the integration.",
-      "cannot_connect": "Could not connect to iCloud Drive."
+      "cannot_connect": "Could not connect to iCloud Drive.",
+      "root_not_allowed": "Please choose or create a folder – backups cannot be stored directly in the iCloud Drive root.",
+      "invalid_name": "Invalid folder name (must not be empty or contain /).",
+      "unknown": "Unexpected error, see the log for details."
+    },
+    "abort": {
+      "not_loaded": "The integration is not loaded. Fix the connection (re-authenticate) first, then try again."
     }
   }
 }
