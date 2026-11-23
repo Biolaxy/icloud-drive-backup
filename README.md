@@ -50,7 +50,7 @@ Nach der Einrichtung erscheint in der Seitenleiste **iCloud Backup** (nur für A
 
 Der aktuelle Backup-Ordner ist im Baum mit einem grünen Punkt markiert. Vorhandene Backups werden beim Wechsel nicht verschoben.
 
-Alternativ unter **Einstellungen → Geräte & Dienste → iCloud Drive Backup → Konfigurieren**: Status ansehen, Pfad manuell eingeben oder Ordner prüfen.
+Alternativ unter **Einstellungen → Geräte & Dienste → iCloud Drive Backup → Konfigurieren**: Status ansehen, Pfad manuell eingeben, Ordner prüfen oder den Explorer **in der Seitenleiste aus- und einblenden**. Ausgeblendet bleibt er über den Link in diesem Dialog erreichbar.
 
 ## Wie es funktioniert
 
@@ -66,7 +66,7 @@ Alternativ unter **Einstellungen → Geräte & Dienste → iCloud Drive Backup �
 - Apple bietet **keine offizielle API** für iCloud Drive. Die Integration nutzt die Bibliothek [`pyicloud`](https://github.com/timlaing/pyicloud), die die iCloud-Weboberfläche nachbildet. Apple kann das jederzeit ändern.
 - Die vertrauenswürdige Sitzung läuft nach einiger Zeit ab (typischerweise ca. 2 Monate). Home Assistant zeigt dann unter **Einstellungen → Reparaturen** bzw. bei der Integration „Erneut authentifizieren“ an – Passwort + neuen 2FA-Code eingeben.
 - Sitzungs-Cookies werden unter `/config/.storage/icloud_drive_backup/` gespeichert.
-- Tipp: Ein app-spezifisches Passwort funktioniert hier **nicht** – es wird das normale Apple-ID-Passwort benötigt.
+- Ein **app-spezifisches Passwort funktioniert nicht**: Apple akzeptiert diese nur für Protokolle wie CalDAV, CardDAV und IMAP, nicht für die iCloud-Web-Anmeldung, über die iCloud Drive läuft. Es wird das normale Apple-ID-Passwort benötigt (es bleibt lokal in Home Assistant gespeichert).
 
 ## Fehlersuche
 

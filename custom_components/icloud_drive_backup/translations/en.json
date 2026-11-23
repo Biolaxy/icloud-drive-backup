@@ -47,10 +47,11 @@
     "step": {
       "init": {
         "title": "iCloud Drive Backup",
-        "description": "**Backup folder:** {folder}\n\n**Status:** {status}\n\n[📂 Open the folder explorer](/icloud-backup) to browse your iCloud Drive and pick a folder (also in the sidebar under **iCloud Backup**).",
+        "description": "**Backup folder:** {folder}\n\n**Status:** {status}\n\n[📂 Open the folder explorer](/icloud-backup) to browse your iCloud Drive and pick a folder.",
         "menu_options": {
           "manual": "⌨️ Enter folder path manually",
-          "check": "🩺 Check folder (read and write test)"
+          "check": "🩺 Check folder (read and write test)",
+          "sidebar": "🧭 Show or hide in sidebar"
         }
       },
       "manual": {
@@ -63,6 +64,13 @@
       "check": {
         "title": "Folder check",
         "description": "**Folder:** {folder}\n\n{result}\n\nSubmit to go back."
+      },
+      "sidebar": {
+        "title": "Sidebar",
+        "description": "Choose whether **iCloud Backup** appears in the sidebar. When hidden, the explorer stays available via the link in this dialog.",
+        "data": {
+          "show_panel": "Show the folder explorer in the sidebar"
+        }
       }
     },
     "error": {

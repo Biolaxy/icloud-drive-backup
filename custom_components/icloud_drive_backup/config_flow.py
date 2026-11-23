@@ -37,6 +37,7 @@ from .api import (
 from .const import (
     CONF_CHINA_MAINLAND,
     CONF_FOLDER,
+    CONF_SHOW_PANEL,
     CONF_VERIFICATION_CODE,
     DEFAULT_FOLDER,
     DOMAIN,
@@ -265,7 +266,9 @@ class ICloudDriveOptionsFlow(OptionsFlow):
             return None, "root_not_allowed"
         folder = normalize_folder(folder)
         if folder == entry_folder(self.config_entry):
-            return self.async_create_entry(data={CONF_FOLDER: folder}), None
+            return self.async_create_entry(
+                data={**self.config_entry.options, CONF_FOLDER: folder}
+            ), None
         try:
             await self.hass.async_add_executor_job(
                 client.for_folder(folder).ensure_folder
@@ -284,7 +287,9 @@ class ICloudDriveOptionsFlow(OptionsFlow):
             entry_folder(self.config_entry),
             folder,
         )
-        return self.async_create_entry(data={CONF_FOLDER: folder}), None
+        return self.async_create_entry(
+                data={**self.config_entry.options, CONF_FOLDER: folder}
+            ), None
 
     # ----------------------------------------------------------------- menu
 
@@ -298,7 +303,7 @@ class ICloudDriveOptionsFlow(OptionsFlow):
         check = await self.hass.async_add_executor_job(client.check, False)
         return self.async_show_menu(
             step_id="init",
-            menu_options=["manual", "check"],
+            menu_options=["manual", "check", "sidebar"],
             description_placeholders={
                 "folder": _display_path(split_path(client.folder)),
                 "status": self._status_text(check),
@@ -369,4 +374,29 @@ class ICloudDriveOptionsFlow(OptionsFlow):
                 "current": _display_path(split_path(client.folder))
             },
             errors=errors,
+        )
+
+    # -------------------------------------------------------------- sidebar
+
+    async def async_step_sidebar(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Show or hide the 'iCloud Backup' explorer in the sidebar."""
+        if user_input is not None:
+            return self.async_create_entry(
+                data={
+                    **self.config_entry.options,
+                    CONF_SHOW_PANEL: user_input[CONF_SHOW_PANEL],
+                }
+            )
+        return self.async_show_form(
+            step_id="sidebar",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(
+                        CONF_SHOW_PANEL,
+                        default=self.config_entry.options.get(CONF_SHOW_PANEL, True),
+                    ): bool
+                }
+            ),
         )

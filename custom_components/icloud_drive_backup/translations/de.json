@@ -47,10 +47,11 @@
     "step": {
       "init": {
         "title": "iCloud Drive Backup",
-        "description": "**Backup-Ordner:** {folder}\n\n**Status:** {status}\n\n[📂 Ordner-Explorer öffnen](/icloud-backup), um dein iCloud Drive zu durchsuchen und einen Ordner zu wählen (auch in der Seitenleiste unter **iCloud Backup**).",
+        "description": "**Backup-Ordner:** {folder}\n\n**Status:** {status}\n\n[📂 Ordner-Explorer öffnen](/icloud-backup), um dein iCloud Drive zu durchsuchen und einen Ordner zu wählen.",
         "menu_options": {
           "manual": "⌨️ Ordnerpfad manuell eingeben",
-          "check": "🩺 Ordner prüfen (Lese- und Schreibtest)"
+          "check": "🩺 Ordner prüfen (Lese- und Schreibtest)",
+          "sidebar": "🧭 In der Seitenleiste ein- oder ausblenden"
         }
       },
       "manual": {
@@ -63,6 +64,13 @@
       "check": {
         "title": "Ordnerprüfung",
         "description": "**Ordner:** {folder}\n\n{result}\n\nAbsenden, um zurückzugehen."
+      },
+      "sidebar": {
+        "title": "Seitenleiste",
+        "description": "Lege fest, ob **iCloud Backup** in der Seitenleiste erscheint. Ausgeblendet bleibt der Explorer über den Link in diesem Dialog erreichbar.",
+        "data": {
+          "show_panel": "Ordner-Explorer in der Seitenleiste anzeigen"
+        }
       }
     },
     "error": {

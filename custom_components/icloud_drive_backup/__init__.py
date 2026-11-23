@@ -32,6 +32,7 @@ from .api import (
 from .const import (
     CONF_CHINA_MAINLAND,
     CONF_FOLDER,
+    CONF_SHOW_PANEL,
     DATA_BACKUP_AGENT_LISTENERS,
     DEFAULT_FOLDER,
     DOMAIN,
@@ -61,21 +62,38 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     return True
 
 
+def _sidebar_wanted(hass: HomeAssistant) -> bool:
+    """Show the sidebar entry unless every account has turned it off."""
+    entries = [
+        e for e in hass.config_entries.async_entries(DOMAIN) if not e.disabled_by
+    ]
+    return any(e.options.get(CONF_SHOW_PANEL, True) for e in entries)
+
+
 async def _async_register_panel(hass: HomeAssistant) -> None:
-    """Add the 'iCloud Backup' explorer to the sidebar (admins only)."""
-    if hass.data.get(_PANEL_FLAG):
+    """Register the explorer panel (admins only).
+
+    When the sidebar entry is turned off the panel stays registered without a
+    sidebar item, so it can still be opened via /icloud-backup (linked from the
+    options dialog).
+    """
+    show = _sidebar_wanted(hass)
+    state = hass.data.get(_PANEL_FLAG)  # None = not registered, else bool shown
+    if state is show:
         return
-    hass.data[_PANEL_FLAG] = True
+    if state is not None:
+        async_remove_panel(hass, PANEL_URL_PATH)
     await panel_custom.async_register_panel(
         hass,
         frontend_url_path=PANEL_URL_PATH,
         webcomponent_name=PANEL_WEBCOMPONENT,
-        sidebar_title="iCloud Backup",
-        sidebar_icon="mdi:cloud-upload-outline",
+        sidebar_title="iCloud Backup" if show else None,
+        sidebar_icon="mdi:cloud-upload-outline" if show else None,
         module_url=f"{STATIC_URL}/icloud-backup-panel.js?v={_VERSION}",
         require_admin=True,
         config={},
     )
+    hass.data[_PANEL_FLAG] = show
 
 
 def normalize_folder(folder: str | None) -> str:
@@ -163,5 +181,5 @@ async def async_remove_entry(hass: HomeAssistant, entry: ICloudDriveConfigEntry)
     others = [
         e for e in hass.config_entries.async_entries(DOMAIN) if e.entry_id != entry.entry_id
     ]
-    if not others and hass.data.pop(_PANEL_FLAG, False):
+    if not others and hass.data.pop(_PANEL_FLAG, None) is not None:
         async_remove_panel(hass, PANEL_URL_PATH)
