@@ -358,6 +358,78 @@ class ICloudDriveClient:
         names = [_drive_name(c) for c in children if c.type == "folder"]
         return sorted(names, key=str.casefold)
 
+    def browse(self, path: str) -> dict[str, Any]:
+        """Describe a folder: its subfolders and the HA backups inside it.
+
+        Works on file metadata from the folder listing only (no downloads).
+        """
+        with self._lock:
+            node = self._call(self._resolve, path, False)
+            children = self._call(node.get_children, True)
+        folders: list[dict[str, Any]] = []
+        files: dict[str, Any] = {}
+        for child in children:
+            if child.type == "folder":
+                folders.append(
+                    {
+                        "name": _drive_name(child),
+                        "items": child.data.get("directChildrenCount"),
+                    }
+                )
+            elif child.type == "file":
+                files[_drive_name(child)] = child
+        backups: list[dict[str, Any]] = []
+        other_files = 0
+        for name, child in files.items():
+            if name.endswith(METADATA_SUFFIX):
+                continue
+            if not name.endswith(BACKUP_SUFFIX):
+                other_files += 1
+                continue
+            base = name[: -len(BACKUP_SUFFIX)]
+            size = child.data.get("size")
+            backups.append(
+                {
+                    "file": name,
+                    "name": base.rsplit("_", 1)[0] if "_" in base else base,
+                    "size": int(size) if size not in (None, "") else None,
+                    "modified": child.data.get("dateModified")
+                    or child.data.get("dateChanged"),
+                    "ha_backup": base + METADATA_SUFFIX in files,
+                }
+            )
+        folders.sort(key=lambda f: f["name"].casefold())
+        backups.sort(key=lambda b: b["modified"] or "", reverse=True)
+        return {
+            "path": "/".join(split_path(path)),
+            "folders": folders,
+            "backups": backups,
+            "other_files": other_files,
+        }
+
+    def folder_tree(self, max_depth: int = 4, max_folders: int = 400) -> dict[str, Any]:
+        """Return all folder paths up to ``max_depth`` levels (for searching)."""
+        paths: list[str] = []
+        truncated = False
+        with self._lock:
+            queue: list[tuple[Any, str, int]] = [(self._drive().root, "", 0)]
+            while queue:
+                node, path, depth = queue.pop(0)
+                if depth >= max_depth:
+                    truncated = truncated or bool(node.data.get("directChildrenCount"))
+                    continue
+                for child in self._call(node.get_children, True):
+                    if child.type != "folder":
+                        continue
+                    child_path = f"{path}/{_drive_name(child)}" if path else _drive_name(child)
+                    if len(paths) >= max_folders:
+                        truncated = True
+                        break
+                    paths.append(child_path)
+                    queue.append((child, child_path, depth + 1))
+        paths.sort(key=str.casefold)
+        return {"paths": paths, "truncated": truncated}
+
     def create_subfolder(self, path: str, name: str) -> None:
         """Create folder ``name`` inside the existing folder ``path``."""
         with self._lock:

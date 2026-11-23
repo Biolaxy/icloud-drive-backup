@@ -2,8 +2,13 @@
 
 from __future__ import annotations
 
+import json
 import logging
+from pathlib import Path
 
+from homeassistant.components import panel_custom
+from homeassistant.components.frontend import async_remove_panel
+from homeassistant.components.http import StaticPathConfig
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import HomeAssistant, callback
@@ -12,6 +17,8 @@ from homeassistant.exceptions import (
     ConfigEntryError,
     ConfigEntryNotReady,
 )
+from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers.typing import ConfigType
 from homeassistant.util import slugify
 
 from .api import (
@@ -28,11 +35,47 @@ from .const import (
     DATA_BACKUP_AGENT_LISTENERS,
     DEFAULT_FOLDER,
     DOMAIN,
+    PANEL_URL_PATH,
+    PANEL_WEBCOMPONENT,
+    STATIC_URL,
 )
+from .websocket import async_register_websocket_commands
 
 _LOGGER = logging.getLogger(__name__)
 
 ICloudDriveConfigEntry = ConfigEntry  # runtime_data: ICloudDriveClient
+
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
+
+_FRONTEND_DIR = Path(__file__).parent / "frontend"
+_VERSION = json.loads((Path(__file__).parent / "manifest.json").read_text())["version"]
+_PANEL_FLAG = f"{DOMAIN}_panel_registered"
+
+
+async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+    """Register the explorer panel's WebSocket API and static files."""
+    async_register_websocket_commands(hass)
+    await hass.http.async_register_static_paths(
+        [StaticPathConfig(STATIC_URL, str(_FRONTEND_DIR), cache_headers=False)]
+    )
+    return True
+
+
+async def _async_register_panel(hass: HomeAssistant) -> None:
+    """Add the 'iCloud Backup' explorer to the sidebar (admins only)."""
+    if hass.data.get(_PANEL_FLAG):
+        return
+    hass.data[_PANEL_FLAG] = True
+    await panel_custom.async_register_panel(
+        hass,
+        frontend_url_path=PANEL_URL_PATH,
+        webcomponent_name=PANEL_WEBCOMPONENT,
+        sidebar_title="iCloud Backup",
+        sidebar_icon="mdi:cloud-upload-outline",
+        module_url=f"{STATIC_URL}/icloud-backup-panel.js?v={_VERSION}",
+        require_admin=True,
+        config={},
+    )
 
 
 def normalize_folder(folder: str | None) -> str:
@@ -81,6 +124,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ICloudDriveConfigEntry) 
         raise ConfigEntryNotReady(str(err)) from err
 
     entry.runtime_data = client
+    await _async_register_panel(hass)
     _LOGGER.info("Storing backups in iCloud Drive folder '%s'", client.folder)
 
     async def _async_options_updated(
@@ -106,5 +150,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: ICloudDriveConfigEntry) 
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ICloudDriveConfigEntry) -> bool:
-    """Unload a config entry."""
+    """Unload a config entry.
+
+    The panel stays registered (a reload after changing the folder must not
+    kick the user out of the explorer); it is removed in async_remove_entry.
+    """
     return True
+
+
+async def async_remove_entry(hass: HomeAssistant, entry: ICloudDriveConfigEntry) -> None:
+    """Remove the sidebar panel once the last account is deleted."""
+    others = [
+        e for e in hass.config_entries.async_entries(DOMAIN) if e.entry_id != entry.entry_id
+    ]
+    if not others and hass.data.pop(_PANEL_FLAG, False):
+        async_remove_panel(hass, PANEL_URL_PATH)

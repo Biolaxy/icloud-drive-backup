@@ -47,25 +47,10 @@
     "step": {
       "init": {
         "title": "iCloud Drive Backup",
-        "description": "**Backup folder:** {folder}\n\n**Status:** {status}",
+        "description": "**Backup folder:** {folder}\n\n**Status:** {status}\n\n[📂 Open the folder explorer](/icloud-backup) to browse your iCloud Drive and pick a folder (also in the sidebar under **iCloud Backup**).",
         "menu_options": {
-          "browse": "📂 Browse for a folder",
           "manual": "⌨️ Enter folder path manually",
           "check": "🩺 Check folder (read and write test)"
-        }
-      },
-      "browse": {
-        "title": "Choose backup folder",
-        "description": "**You are in:** {path} ({subfolders})\n\nCurrently used: {current}\n\nOpen a folder, go up one level, create a new subfolder, or pick the folder you are in.",
-        "data": {
-          "action": "Selection"
-        }
-      },
-      "new_folder": {
-        "title": "New subfolder",
-        "description": "The new folder is created in **{path}**.",
-        "data": {
-          "name": "Folder name"
         }
       },
       "manual": {

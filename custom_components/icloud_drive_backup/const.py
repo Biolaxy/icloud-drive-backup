@@ -27,3 +27,8 @@ METADATA_SUFFIX = ".metadata.json"
 
 # Chunk size used when streaming data between Home Assistant and iCloud.
 CHUNK_SIZE = 1024 * 1024
+
+# Explorer panel in the sidebar.
+PANEL_URL_PATH = "icloud-backup"
+PANEL_WEBCOMPONENT = "icloud-backup-panel"
+STATIC_URL = f"/{DOMAIN}_static"

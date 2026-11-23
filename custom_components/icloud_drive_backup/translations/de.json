@@ -47,25 +47,10 @@
     "step": {
       "init": {
         "title": "iCloud Drive Backup",
-        "description": "**Backup-Ordner:** {folder}\n\n**Status:** {status}",
+        "description": "**Backup-Ordner:** {folder}\n\n**Status:** {status}\n\n[📂 Ordner-Explorer öffnen](/icloud-backup), um dein iCloud Drive zu durchsuchen und einen Ordner zu wählen (auch in der Seitenleiste unter **iCloud Backup**).",
         "menu_options": {
-          "browse": "📂 Ordner durchsuchen",
           "manual": "⌨️ Ordnerpfad manuell eingeben",
           "check": "🩺 Ordner prüfen (Lese- und Schreibtest)"
-        }
-      },
-      "browse": {
-        "title": "Backup-Ordner wählen",
-        "description": "**Du bist in:** {path} ({subfolders})\n\nAktuell verwendet: {current}\n\nÖffne einen Ordner, gehe eine Ebene nach oben, lege einen Unterordner an oder wähle den Ordner, in dem du gerade bist.",
-        "data": {
-          "action": "Auswahl"
-        }
-      },
-      "new_folder": {
-        "title": "Neuer Unterordner",
-        "description": "Der neue Ordner wird in **{path}** angelegt.",
-        "data": {
-          "name": "Ordnername"
         }
       },
       "manual": {
