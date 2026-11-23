@@ -216,20 +216,26 @@ class ICloudDriveBackupConfigFlow(ConfigFlow, domain=DOMAIN):
 
 _LABELS = {
     "de": {
-        "ok": "✅ Verbunden – {count} Backup(s) im Ordner",
-        "missing": "⚠️ Ordner existiert nicht (wird beim nächsten Backup angelegt)",
-        "error": "❌ Nicht erreichbar: {error}",
+        "ok": "✅ **Verbunden** · {count}",
+        "one": "1 Backup in iCloud",
+        "many": "{n} Backups in iCloud",
+        "none": "noch kein Backup in iCloud",
+        "missing": "⚠️ **Ordner fehlt** · wird beim nächsten Backup angelegt",
+        "error": "❌ **Nicht erreichbar** · {error}",
     },
     "en": {
-        "ok": "✅ Connected – {count} backup(s) in the folder",
-        "missing": "⚠️ Folder does not exist (it will be created on the next backup)",
-        "error": "❌ Not reachable: {error}",
+        "ok": "✅ **Connected** · {count}",
+        "one": "1 backup in iCloud",
+        "many": "{n} backups in iCloud",
+        "none": "no backup in iCloud yet",
+        "missing": "⚠️ **Folder missing** · it will be created on the next backup",
+        "error": "❌ **Not reachable** · {error}",
     },
 }
 
 
 def _display_path(segments: list[str]) -> str:
-    return " / ".join(["iCloud Drive", *segments])
+    return " › ".join(["iCloud Drive", *segments])
 
 
 class ICloudDriveOptionsFlow(OptionsFlow):
@@ -256,7 +262,15 @@ class ICloudDriveOptionsFlow(OptionsFlow):
         elif not check.exists:
             status = self._t("missing")
         else:
-            status = self._t("ok", count=check.backups)
+            count = check.backups or 0
+            status = self._t(
+                "ok",
+                count=self._t("none")
+                if count == 0
+                else self._t("one")
+                if count == 1
+                else self._t("many", n=count),
+            )
         return self.async_show_form(
             step_id="init",
             data_schema=vol.Schema({}),

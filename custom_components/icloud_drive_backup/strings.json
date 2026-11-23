@@ -47,7 +47,7 @@
     "step": {
       "init": {
         "title": "iCloud Drive Backup",
-        "description": "**Backup folder:** {folder}\n\n**Status:** {status}\n\n[📂 Open iCloud Backup](/icloud-backup) – folder explorer, notifications and settings in one place.\n\nClose this dialog with **Submit**."
+        "description": "{status}\n\n📁 {folder}\n\nThe backup folder, notifications and all other settings are in the **iCloud Backup** page.\n\n**[Open iCloud Backup →](/icloud-backup)**"
       }
     },
     "abort": {
