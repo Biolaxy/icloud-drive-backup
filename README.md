@@ -37,30 +37,28 @@ Nach der Einrichtung erscheint „iCloud Drive (…)“ unter **Einstellungen �
 3. Den 6-stelligen Code eingeben, der auf deinem iPhone/Mac erscheint.
 4. **Einstellungen → System → Backups → Backup-Einstellungen** öffnen und iCloud Drive als Speicherort aktivieren.
 
-## Ordner-Explorer (Seitenleiste „iCloud Backup“)
+## Alles an einer Stelle: „iCloud Backup“ in der Seitenleiste
 
-Nach der Einrichtung erscheint in der Seitenleiste **iCloud Backup** (nur für Admins):
+Nach der Einrichtung erscheint in der Seitenleiste **iCloud Backup** (nur für Admins).
 
-- **Ordnerbaum** links zum Auf- und Zuklappen, rechts der Inhalt des gewählten Ordners
-- **Backups im Ordner** mit Datum und Größe
-- **Suche** über alle Ordner (die ersten Ebenen)
-- **Neuen Unterordner anlegen** direkt im gewählten Ordner
-- **Als Backup-Ordner verwenden** – die Integration lädt sofort mit dem neuen Ordner neu
-- **Ordner prüfen** – Lese- und Schreibtest (eine kleine Testdatei wird angelegt und wieder gelöscht, sie landet in „Zuletzt gelöscht“)
+**Oben – Status auf einen Blick:** Konto, aktueller Backup-Ordner, letztes Backup in iCloud (wann, wie groß) und Anzahl der Backups. Ist die Anmeldung abgelaufen, steht hier ein deutlicher Hinweis mit **„Jetzt neu anmelden“**.
 
-Der aktuelle Backup-Ordner ist im Baum mit einem grünen Punkt markiert. Vorhandene Backups werden beim Wechsel nicht verschoben.
+**Tab „Ordner“** – Explorer für dein iCloud Drive:
+- Ordnerbaum zum Auf- und Zuklappen, rechts der Inhalt mit den Backups (Datum, Größe)
+- Suche über alle Ordner, neuen Unterordner anlegen
+- **Als Backup-Ordner verwenden** – gilt sofort; der aktuelle Ordner ist mit einem grünen Punkt markiert
 
-Alternativ unter **Einstellungen → Geräte & Dienste → iCloud Drive Backup → Konfigurieren**: Status ansehen, Pfad manuell eingeben, Ordner prüfen oder den Explorer **in der Seitenleiste aus- und einblenden**. Ausgeblendet bleibt er über den Link in diesem Dialog erreichbar.
+**Tab „Benachrichtigungen“** – wie du erfährst, dass du dich neu anmelden musst:
+- Hinweis in Home Assistant (Glocke, standardmäßig an)
+- Push-Nachricht an ausgewählte Geräte (Home-Assistant-App, WhatsApp …) – Tippen öffnet die Integration
+- Testnachricht senden
 
-## Benachrichtigung bei abgelaufener Anmeldung
+**Tab „Einstellungen“:**
+- In der Seitenleiste anzeigen / ausblenden (ausgeblendet erreichbar über *Einstellungen → Geräte & Dienste → iCloud Drive Backup → Konfigurieren*)
+- Ordner prüfen (Lese- und Schreibtest)
+- Links zu den Backup-Einstellungen von Home Assistant und zur Kontoverwaltung
 
-Unter **Konfigurieren → 🔔 Benachrichtigung bei abgelaufener Anmeldung** legst du fest, wie du erfährst, dass du dich neu anmelden musst:
-
-- **Hinweis in Home Assistant** (Glocke in der Seitenleiste, standardmäßig an)
-- **Push-Nachricht** an ausgewählte Geräte, z. B. `notify.mobile_app_dein_iphone` – ein Tipp darauf öffnet direkt die Integration
-- **Testnachricht** zum Ausprobieren
-
-Pro abgelaufener Sitzung kommt eine Nachricht (nach einem Neustart von Home Assistant ggf. erneut). Sobald die Anmeldung wieder klappt, verschwindet der Hinweis automatisch.
+Vorhandene Backups werden bei einem Ordnerwechsel nicht verschoben. Pro abgelaufener Sitzung kommt eine Benachrichtigung; nach erfolgreicher Anmeldung verschwindet der Hinweis automatisch.
 
 ## Wie es funktioniert
 

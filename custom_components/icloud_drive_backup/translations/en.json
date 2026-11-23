@@ -47,50 +47,8 @@
     "step": {
       "init": {
         "title": "iCloud Drive Backup",
-        "description": "**Backup folder:** {folder}\n\n**Status:** {status}\n\n[📂 Open the folder explorer](/icloud-backup) to browse your iCloud Drive and pick a folder.",
-        "menu_options": {
-          "manual": "⌨️ Enter folder path manually",
-          "check": "🩺 Check folder (read and write test)",
-          "notify": "🔔 Notification when sign-in expires",
-          "sidebar": "🧭 Show or hide in sidebar"
-        }
-      },
-      "manual": {
-        "title": "Enter folder path",
-        "description": "Currently used: {current}\n\nUse / for subfolders, e.g. `Backup/HomeAssistant`. Missing folders are created. Existing backups are not moved.",
-        "data": {
-          "folder": "Folder in iCloud Drive"
-        }
-      },
-      "check": {
-        "title": "Folder check",
-        "description": "**Folder:** {folder}\n\n{result}\n\nSubmit to go back."
-      },
-      "sidebar": {
-        "title": "Sidebar",
-        "description": "Choose whether **iCloud Backup** appears in the sidebar. When hidden, the explorer stays available via the link in this dialog.",
-        "data": {
-          "show_panel": "Show the folder explorer in the sidebar"
-        }
-      },
-      "notify": {
-        "title": "Notification when sign-in expires",
-        "description": "About every 2 months Apple ends the iCloud session and you have to sign in again. Until then no backups are stored in iCloud. Choose how you want to be told.\n\n{status}",
-        "data": {
-          "notify_persistent": "Show a notification in Home Assistant",
-          "notify_services": "Push message to these devices",
-          "send_test": "Send a test message now"
-        }
+        "description": "**Backup folder:** {folder}\n\n**Status:** {status}\n\n[📂 Open iCloud Backup](/icloud-backup) – folder explorer, notifications and settings in one place.\n\nClose this dialog with **Submit**."
       }
-    },
-    "error": {
-      "folder_failed": "The folder could not be found or created in iCloud Drive. Check the log for details.",
-      "drive_unavailable": "iCloud Drive is not reachable via the web API.",
-      "invalid_auth": "The iCloud session has expired. Please re-authenticate the integration.",
-      "cannot_connect": "Could not connect to iCloud Drive.",
-      "root_not_allowed": "Please choose or create a folder – backups cannot be stored directly in the iCloud Drive root.",
-      "invalid_name": "Invalid folder name (must not be empty or contain /).",
-      "unknown": "Unexpected error, see the log for details."
     },
     "abort": {
       "not_loaded": "The integration is not loaded. Fix the connection (re-authenticate) first, then try again."

@@ -47,50 +47,8 @@
     "step": {
       "init": {
         "title": "iCloud Drive Backup",
-        "description": "**Backup-Ordner:** {folder}\n\n**Status:** {status}\n\n[📂 Ordner-Explorer öffnen](/icloud-backup), um dein iCloud Drive zu durchsuchen und einen Ordner zu wählen.",
-        "menu_options": {
-          "manual": "⌨️ Ordnerpfad manuell eingeben",
-          "check": "🩺 Ordner prüfen (Lese- und Schreibtest)",
-          "notify": "🔔 Benachrichtigung bei abgelaufener Anmeldung",
-          "sidebar": "🧭 In der Seitenleiste ein- oder ausblenden"
-        }
-      },
-      "manual": {
-        "title": "Ordnerpfad eingeben",
-        "description": "Aktuell verwendet: {current}\n\nUnterordner mit / trennen, z. B. `Backup/HomeAssistant`. Fehlende Ordner werden angelegt. Vorhandene Backups werden nicht verschoben.",
-        "data": {
-          "folder": "Ordner im iCloud Drive"
-        }
-      },
-      "check": {
-        "title": "Ordnerprüfung",
-        "description": "**Ordner:** {folder}\n\n{result}\n\nAbsenden, um zurückzugehen."
-      },
-      "sidebar": {
-        "title": "Seitenleiste",
-        "description": "Lege fest, ob **iCloud Backup** in der Seitenleiste erscheint. Ausgeblendet bleibt der Explorer über den Link in diesem Dialog erreichbar.",
-        "data": {
-          "show_panel": "Ordner-Explorer in der Seitenleiste anzeigen"
-        }
-      },
-      "notify": {
-        "title": "Benachrichtigung bei abgelaufener Anmeldung",
-        "description": "Etwa alle 2 Monate beendet Apple die iCloud-Sitzung und du musst dich neu anmelden. Solange du das nicht erledigst, werden keine Backups in iCloud gespeichert. Lege fest, wie du davon erfährst.\n\n{status}",
-        "data": {
-          "notify_persistent": "Hinweis in Home Assistant anzeigen",
-          "notify_services": "Push-Nachricht an diese Geräte",
-          "send_test": "Jetzt eine Testnachricht senden"
-        }
+        "description": "**Backup-Ordner:** {folder}\n\n**Status:** {status}\n\n[📂 iCloud Backup öffnen](/icloud-backup) – Ordner-Explorer, Benachrichtigungen und Einstellungen an einer Stelle.\n\nDialog mit **Absenden** schließen."
       }
-    },
-    "error": {
-      "folder_failed": "Der Ordner konnte im iCloud Drive nicht gefunden oder angelegt werden. Details stehen im Log.",
-      "drive_unavailable": "iCloud Drive ist über die Web-API nicht erreichbar.",
-      "invalid_auth": "Die iCloud-Sitzung ist abgelaufen. Bitte die Integration erneut authentifizieren.",
-      "cannot_connect": "Verbindung zu iCloud Drive fehlgeschlagen.",
-      "root_not_allowed": "Bitte einen Ordner wählen oder anlegen – Backups können nicht direkt in der obersten Ebene des iCloud Drive liegen.",
-      "invalid_name": "Ungültiger Ordnername (darf nicht leer sein und kein / enthalten).",
-      "unknown": "Unerwarteter Fehler, Details im Log."
     },
     "abort": {
       "not_loaded": "Die Integration ist nicht geladen. Bitte zuerst die Verbindung reparieren (erneut authentifizieren), dann erneut versuchen."

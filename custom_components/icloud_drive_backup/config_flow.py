@@ -18,16 +18,12 @@ from homeassistant.config_entries import (
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import callback
 from homeassistant.helpers.selector import (
-    SelectSelector,
-    SelectSelectorConfig,
-    SelectSelectorMode,
     TextSelector,
     TextSelectorConfig,
     TextSelectorType,
 )
 
-from . import create_client, entry_folder, normalize_folder
-from .notify import async_send_test, available_notify_services
+from . import create_client, normalize_folder
 from .api import (
     ICloudDriveAuthError,
     ICloudDriveClient,
@@ -41,9 +37,6 @@ from .api import (
 from .const import (
     CONF_CHINA_MAINLAND,
     CONF_FOLDER,
-    CONF_NOTIFY_PERSISTENT,
-    CONF_NOTIFY_SERVICES,
-    CONF_SHOW_PANEL,
     CONF_VERIFICATION_CODE,
     DEFAULT_FOLDER,
     DOMAIN,
@@ -217,31 +210,20 @@ class ICloudDriveBackupConfigFlow(ConfigFlow, domain=DOMAIN):
 
 
 # --------------------------------------------------------------------------
-# Options: status, folder browser, manual path and a full folder check
+# Options: everything lives in the "iCloud Backup" panel; this dialog only
+# shows the live status and links there.
 # --------------------------------------------------------------------------
 
 _LABELS = {
     "de": {
-        "ok": "✅ Erreichbar – {count} Backup(s) im Ordner",
+        "ok": "✅ Verbunden – {count} Backup(s) im Ordner",
         "missing": "⚠️ Ordner existiert nicht (wird beim nächsten Backup angelegt)",
         "error": "❌ Nicht erreichbar: {error}",
-        "read_ok": "✅ Ordner gefunden und lesbar ({count} Backup(s))",
-        "write_ok": "✅ Schreibtest erfolgreich (Testdatei angelegt und gelöscht)",
-        "write_fail": "❌ Schreibtest fehlgeschlagen",
-        "test_sent": "✅ Testnachricht gesendet – prüfe die Benachrichtigungen und dein Handy. Zum Übernehmen „Absenden“ ohne Häkchen bei Testnachricht.",
-        "no_services": "Keine Push-Dienste gefunden. Installiere die Home-Assistant-App auf deinem Handy, dann erscheint sie hier (notify.mobile_app_…).",
-        "pick_services": "Wähle die Geräte, die eine Push-Nachricht bekommen sollen (z. B. notify.mobile_app_dein_iphone).",
     },
     "en": {
-        "ok": "✅ Reachable – {count} backup(s) in the folder",
+        "ok": "✅ Connected – {count} backup(s) in the folder",
         "missing": "⚠️ Folder does not exist (it will be created on the next backup)",
         "error": "❌ Not reachable: {error}",
-        "read_ok": "✅ Folder found and readable ({count} backup(s))",
-        "write_ok": "✅ Write test passed (test file created and deleted)",
-        "write_fail": "❌ Write test failed",
-        "test_sent": "✅ Test message sent – check your notifications and your phone. To save, submit without ticking the test box.",
-        "no_services": "No push services found. Install the Home Assistant app on your phone and it will show up here (notify.mobile_app_…).",
-        "pick_services": "Pick the devices that should get a push message (e.g. notify.mobile_app_your_iphone).",
     },
 }
 
@@ -251,220 +233,35 @@ def _display_path(segments: list[str]) -> str:
 
 
 class ICloudDriveOptionsFlow(OptionsFlow):
-    """Options for an entry: check, browse for and change the backup folder."""
-
-    # ---------------------------------------------------------------- utils
+    """Show the status and link to the iCloud Backup panel."""
 
     def _t(self, key: str, **kwargs: Any) -> str:
         lang = "de" if (self.hass.config.language or "").startswith("de") else "en"
         return _LABELS[lang][key].format(**kwargs)
 
-    @property
-    def _client(self) -> ICloudDriveClient | None:
-        return getattr(self.config_entry, "runtime_data", None)
-
-    def _status_text(self, check: FolderCheck) -> str:
-        if check.error:
-            return self._t("error", error=check.error)
-        if not check.exists:
-            return self._t("missing")
-        return self._t("ok", count=check.backups)
-
-    async def _async_save(self, folder: str) -> tuple[ConfigFlowResult | None, str | None]:
-        """Validate and store a new folder. Returns (result, error_key)."""
-        client = self._client
-        assert client is not None
-        if not split_path(folder):
-            return None, "root_not_allowed"
-        folder = normalize_folder(folder)
-        if folder == entry_folder(self.config_entry):
-            return self.async_create_entry(
-                data={**self.config_entry.options, CONF_FOLDER: folder}
-            ), None
-        try:
-            await self.hass.async_add_executor_job(
-                client.for_folder(folder).ensure_folder
-            )
-        except ICloudDriveAuthError:
-            return None, "invalid_auth"
-        except ICloudDriveUnavailableError:
-            return None, "drive_unavailable"
-        except ICloudDriveConnectionError:
-            return None, "cannot_connect"
-        except ICloudDriveError as err:
-            _LOGGER.error("Folder '%s' could not be used: %s", folder, err)
-            return None, "folder_failed"
-        _LOGGER.info(
-            "Backup folder changed from '%s' to '%s'",
-            entry_folder(self.config_entry),
-            folder,
-        )
-        return self.async_create_entry(
-                data={**self.config_entry.options, CONF_FOLDER: folder}
-            ), None
-
-    # ----------------------------------------------------------------- menu
-
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Show the current folder, its live status and the available actions."""
-        client = self._client
-        if client is None:
-            return self.async_abort(reason="not_loaded")
-        check = await self.hass.async_add_executor_job(client.check, False)
-        return self.async_show_menu(
-            step_id="init",
-            menu_options=["manual", "check", "notify", "sidebar"],
-            description_placeholders={
-                "folder": _display_path(split_path(client.folder)),
-                "status": self._status_text(check),
-            },
-        )
-
-    # ---------------------------------------------------------- full check
-
-    async def async_step_check(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
-        """Run a read + write test on the configured folder."""
-        client = self._client
-        if client is None:
-            return self.async_abort(reason="not_loaded")
+        """Status at a glance plus a link to the panel."""
         if user_input is not None:
-            return await self.async_step_init()
-
-        check = await self.hass.async_add_executor_job(client.check, True)
-        if check.error and not check.exists:
-            lines = [self._t("error", error=check.error)]
+            return self.async_create_entry(data=dict(self.config_entry.options))
+        client: ICloudDriveClient | None = getattr(
+            self.config_entry, "runtime_data", None
+        )
+        if client is None:
+            return self.async_abort(reason="not_loaded")
+        check: FolderCheck = await self.hass.async_add_executor_job(client.check, False)
+        if check.error:
+            status = self._t("error", error=check.error)
         elif not check.exists:
-            lines = [self._t("missing")]
+            status = self._t("missing")
         else:
-            lines = [self._t("read_ok", count=check.backups)]
-            if check.write_ok:
-                lines.append(self._t("write_ok"))
-            else:
-                lines.append(self._t("write_fail"))
-                if check.error:
-                    lines.append(self._t("error", error=check.error))
+            status = self._t("ok", count=check.backups)
         return self.async_show_form(
-            step_id="check",
+            step_id="init",
             data_schema=vol.Schema({}),
             description_placeholders={
                 "folder": _display_path(split_path(client.folder)),
-                "result": "\n\n".join(lines),
+                "status": status,
             },
-        )
-
-    # --------------------------------------------------------------- manual
-
-    async def async_step_manual(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
-        """Type a folder path by hand."""
-        client = self._client
-        if client is None:
-            return self.async_abort(reason="not_loaded")
-        errors: dict[str, str] = {}
-        if user_input is not None:
-            result, error = await self._async_save(user_input.get(CONF_FOLDER, ""))
-            if result is not None:
-                return result
-            errors["base"] = error or "unknown"
-
-        return self.async_show_form(
-            step_id="manual",
-            data_schema=vol.Schema(
-                {
-                    vol.Required(
-                        CONF_FOLDER,
-                        default=(user_input or {}).get(CONF_FOLDER, client.folder),
-                    ): str
-                }
-            ),
-            description_placeholders={
-                "current": _display_path(split_path(client.folder))
-            },
-            errors=errors,
-        )
-
-    # -------------------------------------------------------------- sidebar
-
-    async def async_step_sidebar(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
-        """Show or hide the 'iCloud Backup' explorer in the sidebar."""
-        if user_input is not None:
-            return self.async_create_entry(
-                data={
-                    **self.config_entry.options,
-                    CONF_SHOW_PANEL: user_input[CONF_SHOW_PANEL],
-                }
-            )
-        return self.async_show_form(
-            step_id="sidebar",
-            data_schema=vol.Schema(
-                {
-                    vol.Required(
-                        CONF_SHOW_PANEL,
-                        default=self.config_entry.options.get(CONF_SHOW_PANEL, True),
-                    ): bool
-                }
-            ),
-        )
-
-    # --------------------------------------------------------------- notify
-
-    async def async_step_notify(
-        self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
-        """Choose how to be told when the iCloud sign-in has to be renewed."""
-        services = available_notify_services(self.hass)
-        current = {
-            CONF_NOTIFY_PERSISTENT: self.config_entry.options.get(
-                CONF_NOTIFY_PERSISTENT, True
-            ),
-            CONF_NOTIFY_SERVICES: [
-                s
-                for s in self.config_entry.options.get(CONF_NOTIFY_SERVICES, [])
-                if s in services
-            ],
-        }
-        status = self._t("pick_services") if services else self._t("no_services")
-
-        if user_input is not None:
-            chosen = {
-                CONF_NOTIFY_PERSISTENT: user_input.get(CONF_NOTIFY_PERSISTENT, True),
-                CONF_NOTIFY_SERVICES: user_input.get(CONF_NOTIFY_SERVICES, []),
-            }
-            if not user_input.get("send_test"):
-                return self.async_create_entry(
-                    data={**self.config_entry.options, **chosen}
-                )
-            await async_send_test(self.hass, self.config_entry, chosen)
-            current = chosen
-            status = self._t("test_sent")
-
-        schema: dict[Any, Any] = {
-            vol.Required(
-                CONF_NOTIFY_PERSISTENT, default=current[CONF_NOTIFY_PERSISTENT]
-            ): bool,
-        }
-        if services:
-            schema[
-                vol.Optional(
-                    CONF_NOTIFY_SERVICES, default=current[CONF_NOTIFY_SERVICES]
-                )
-            ] = SelectSelector(
-                SelectSelectorConfig(
-                    options=[{"value": s, "label": f"notify.{s}"} for s in services],
-                    multiple=True,
-                    mode=SelectSelectorMode.DROPDOWN,
-                )
-            )
-        schema[vol.Optional("send_test", default=False)] = bool
-        return self.async_show_form(
-            step_id="notify",
-            data_schema=vol.Schema(schema),
-            description_placeholders={"status": status},
         )

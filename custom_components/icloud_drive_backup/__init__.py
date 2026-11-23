@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-import json
 import logging
 from pathlib import Path
 
 from homeassistant.components import panel_custom
 from homeassistant.components.frontend import async_remove_panel
 from homeassistant.components.http import StaticPathConfig
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.config_entries import ConfigEntry, ConfigEntryState
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import (
@@ -41,6 +40,7 @@ from .const import (
     STATIC_URL,
 )
 from .notify import async_clear_reauth, async_notify_reauth
+from .util import VERSION, entry_folder, normalize_folder  # noqa: F401 (re-exported)
 from .websocket import async_register_websocket_commands
 
 _LOGGER = logging.getLogger(__name__)
@@ -50,7 +50,6 @@ ICloudDriveConfigEntry = ConfigEntry  # runtime_data: ICloudDriveClient
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 _FRONTEND_DIR = Path(__file__).parent / "frontend"
-_VERSION = json.loads((Path(__file__).parent / "manifest.json").read_text())["version"]
 _PANEL_FLAG = f"{DOMAIN}_panel_registered"
 
 
@@ -90,24 +89,11 @@ async def _async_register_panel(hass: HomeAssistant) -> None:
         webcomponent_name=PANEL_WEBCOMPONENT,
         sidebar_title="iCloud Backup" if show else None,
         sidebar_icon="mdi:cloud-upload-outline" if show else None,
-        module_url=f"{STATIC_URL}/icloud-backup-panel.js?v={_VERSION}",
+        module_url=f"{STATIC_URL}/icloud-backup-panel.js?v={VERSION}",
         require_admin=True,
         config={},
     )
     hass.data[_PANEL_FLAG] = show
-
-
-def normalize_folder(folder: str | None) -> str:
-    """Normalize a folder path like ' /Backup//HomeAssistant/ '."""
-    parts = [part.strip() for part in (folder or "").split("/") if part.strip()]
-    return "/".join(parts) or DEFAULT_FOLDER
-
-
-def entry_folder(entry: ConfigEntry) -> str:
-    """Return the folder currently configured for an entry (options win)."""
-    return normalize_folder(
-        entry.options.get(CONF_FOLDER) or entry.data.get(CONF_FOLDER)
-    )
 
 
 def create_client(hass: HomeAssistant, data: dict) -> ICloudDriveClient:
@@ -151,7 +137,19 @@ async def async_setup_entry(hass: HomeAssistant, entry: ICloudDriveConfigEntry) 
     async def _async_options_updated(
         hass: HomeAssistant, entry: ICloudDriveConfigEntry
     ) -> None:
-        """Reload so the new folder is used right away."""
+        """Apply changed options.
+
+        Only a folder change needs a reload (new login + folder check);
+        notification and sidebar settings apply without one.
+        """
+        current = getattr(entry, "runtime_data", None)
+        if (
+            entry.state is ConfigEntryState.LOADED
+            and current is not None
+            and current.folder == entry_folder(entry)
+        ):
+            await _async_register_panel(hass)
+            return
         await hass.config_entries.async_reload(entry.entry_id)
 
     entry.async_on_unload(entry.add_update_listener(_async_options_updated))
